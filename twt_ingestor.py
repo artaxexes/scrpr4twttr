@@ -16,15 +16,15 @@ mongo_collection = mongo_db.tweets
 
 # twitter connection (https://apps.twitter.com/)
 oauth = twitter.OAuth(
-	consumer_key = '',	# consumer key (api key) goes here
-	consumer_secret = '',	# consumer secret (api secret) goes here
-	token = '',		# access token goes here
-	token_secret = ''	# access token secret goes here
+	consumer_key = '', # consumer key (api key) goes here
+	consumer_secret = '', # consumer secret (api secret) goes here
+	token = '', # access token goes here
+	token_secret = '' # access token secret goes here
 )
 tt = twitter.Twitter(auth = oauth)
 tt_query = '#rio2016'
 tt_type = 'mixed'
-tt_qnt = 100
+tt_qnt = 10
 
 # search
 print 'Searching...',
