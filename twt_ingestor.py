@@ -37,14 +37,22 @@ except:
 # tweets search
 print 'searching... ',
 tt_args = ('#PEC241', 'recent', 100, 'pt')
-tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3])
-print '\t[done] search of %d "%s" %s tweets completed in %.3f seconds' % (tt_args[2], tt_args[0], tt_args[1], tts['search_metadata']['completed_in'])
-
+patico = [0, 0, 0] # pagination, time, count
+tts_status = []
+for i in range(5):
+  tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3], since_id = patico[0])
+  patico[0] = tts['search_metadata']['since_id']
+  patico[1] += tts['search_metadata']['completed_in']
+  patico[2] += tts['search_metadata']['count']
+  tts_status += tts['statuses']
+  max_id = min(tts_status, key = lambda x: x['id'])
+  print max_id['id']
+print '\t[done] search of %d "%s" %s tweets completed in %.3f seconds' % (patico[2], tt_args[0], tt_args[1], patico[1])
 
 # tweets storage
 print 'storing... ',
 try:
-  collection.insert_many(tts[u'statuses'])
+  collection.insert_many(tts_status)
   print '\t[done] %d tweets stored in %s' % (collection.count(), collection.full_name)
 except:
   print '\t[error]', sys.exc_info()[1]
