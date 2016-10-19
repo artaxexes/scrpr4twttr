@@ -7,14 +7,14 @@ import pymongo
 
 
 
-# config mongodb connection: mongodb url, port, database and collection names
-mongo_conf = ('localhost', 27017, 'twitter', 'tweets')
-client = pymongo.MongoClient(mongo_conf[0], mongo_conf[1])
-db = client[mongo_conf[2]]
-collection = db[mongo_conf[3]]
 
 
-# config twitter connection: consumer key, consumer secret, access token, access token secret
+'''
+
+    twitter
+
+'''
+
 oauth = twitter.OAuth(
   consumer_key = '',
   consumer_secret = '',
@@ -22,42 +22,62 @@ oauth = twitter.OAuth(
   token_secret = ''
 )
 
+print 'connecting...'
 
-# twitter authentication
-print 'connecting... ',
 try:
   tt = twitter.Twitter(auth = oauth)
   user = tt.account.settings()
-  print '\t[done] connected as', user['screen_name']
+  print '[done] connected as', user['screen_name']
 except:
-  print '\t[error]', sys.exc_info()[1]
+  print '[error]', sys.exc_info()[1]
   raise
 
+print 'searching...'
 
-# tweets search
-print 'searching... ',
-tt_args = ('#PEC241', 'recent', 100, 'pt')
-patico = [0, 0, 0] # pagination, time, count
-tts_status = []
-for i in range(5):
-  tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3], since_id = patico[0])
-  patico[0] = tts['search_metadata']['since_id']
-  patico[1] += tts['search_metadata']['completed_in']
-  patico[2] += tts['search_metadata']['count']
-  tts_status += tts['statuses']
-  max_id = min(tts_status, key = lambda x: x['id'])
-  print max_id['id']
-print '\t[done] search of %d "%s" %s tweets completed in %.3f seconds' % (patico[2], tt_args[0], tt_args[1], patico[1])
+# 1st request
+tt_args = ('#PEC241', 'mixed', 100, 'pt')
+tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3])
+stts = tts['statuses']
+seconds = tts['search_metadata']['completed_in']
 
-# tweets storage
-print 'storing... ',
+# other requests
+for i in range(4):
+  min_id = reduce(lambda x, y: x if x <= y else y, map(lambda k: k['id'], tts['statuses']))
+  since_id = tts['search_metadata']['since_id']
+  tts = tt.search.tweets(q = tt_args[1], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3], max_id = min_id - 1, since_id = since_id)
+  stts += tts['statuses']
+  seconds += tts['search_metadata']['completed_in']
+
+print '[done] search of %d "%s" %s tweets completed in %.2f seconds' % (len(stts), tt_args[0], tt_args[1], seconds)
+
+
+
+
+'''
+
+  mongodb
+
+'''
+
+# url, port, database and collection names
+mongo_conf = ('localhost', 27017, 'twitter', 'tweets')
+client = pymongo.MongoClient(mongo_conf[0], mongo_conf[1])
+db = client[mongo_conf[2]]
+collection = db[mongo_conf[3]]
+
+print 'storing...'
+
 try:
-  collection.insert_many(tts_status)
-  print '\t[done] %d tweets stored in %s' % (collection.count(), collection.full_name)
+  collection.insert_many(stts)
+  print '[done] %d tweets stored in %s' % (collection.count(), collection.full_name)
 except:
-  print '\t[error]', sys.exc_info()[1]
+  print '[error]', sys.exc_info()[1]
   raise
 finally:
   client.close()
 
-print 'finished'
+
+
+
+
+print '[finished]'
