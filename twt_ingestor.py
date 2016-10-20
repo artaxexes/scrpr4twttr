@@ -36,15 +36,15 @@ print 'searching...'
 
 # paging timeline twitter (https://dev.twitter.com/rest/public/timelines)
 # 1st request
-tt_args = ('#PEC241', 'mixed', 100, 'pt')
-tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3])
+tt_args = ('#PEC241', 'mixed', 500, 'pt')
+tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = 100, lang = tt_args[3])
 stts = tts['statuses']
 seconds = tts['search_metadata']['completed_in']
 # other requests
-for i in range(4):
+for i in range((tt_args[2]/100) - 1):
   min_id = reduce(lambda x, y: x if x <= y else y, map(lambda k: k['id'], tts['statuses']))
   since_id = tts['search_metadata']['since_id']
-  tts = tt.search.tweets(q = tt_args[1], result_type = tt_args[1], count = tt_args[2], lang = tt_args[3], max_id = min_id - 1, since_id = since_id)
+  tts = tt.search.tweets(q = tt_args[1], result_type = tt_args[1], count = 100, lang = tt_args[3], max_id = min_id - 1, since_id = since_id)
   stts += tts['statuses']
   seconds += tts['search_metadata']['completed_in']
 
