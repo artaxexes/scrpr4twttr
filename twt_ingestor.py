@@ -44,7 +44,7 @@ seconds = tts['search_metadata']['completed_in']
 for i in range((tt_args[2]/100) - 1):
   min_id = reduce(lambda x, y: x if x <= y else y, map(lambda k: k['id'], tts['statuses']))
   since_id = tts['search_metadata']['since_id']
-  tts = tt.search.tweets(q = tt_args[1], result_type = tt_args[1], count = 100, lang = tt_args[3], max_id = min_id - 1, since_id = since_id)
+  tts = tt.search.tweets(q = tt_args[0], result_type = tt_args[1], count = 100, lang = tt_args[3], max_id = min_id - 1, since_id = since_id)
   stts += tts['statuses']
   seconds += tts['search_metadata']['completed_in']
 
@@ -60,7 +60,7 @@ print '[done] search of %d "%s" %s tweets completed in %.2f seconds' % (len(stts
 '''
 
 # url, port, database and collection names
-mongo_conf = ('localhost', 27017, 'twitter', 'tweets')
+mongo_conf = ('localhost', 27017, 'twitter', tt_args[0])
 client = pymongo.MongoClient(mongo_conf[0], mongo_conf[1])
 db = client[mongo_conf[2]]
 collection = db[mongo_conf[3]]
