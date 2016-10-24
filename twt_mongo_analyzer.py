@@ -67,7 +67,7 @@ finally:
 
 top = 10
 print 'top', top, 'retweeted users'
-for user in db['aggregate'].find(limit = top).sort([('retweeted', pymongo.DESCENDING)]):
+for user in db['aggregate'].find(limit = top):
   print '*', user['_id'], 'retweeted', user['retweeted'], 'times'
 
 print 'finished'
